@@ -1,0 +1,71 @@
+GyazoD
+======
+
+Gyazo on Dropbox
+
+What do you think about [Gyazo](https://github.com/gyazo/gyazo)?
+
+It's very useful!! Awesome tool!!
+
+However, I felt a little bit unuseful things about posting to server.
+
+It's hard to delete images...
+
+So, I forked [Gyazo](https://github.com/gyazo/gyazo)!!
+
+GyazoD can be running on MacOSX.
+
+How to use it?
+--------------
+
+Prepare tokens of Dropbox if you'd like to use Dropbox as a server to put images in.
+
+And then, save a file as a json into keysfile directory like below.
+
+
+    keys_file_name = "keys.json"
+    keysfile = "/Users/#{user}/Library/GyazoD/#{keys_file_name}"
+
+keys.json
+
+    {
+      "app_key": "your app key",
+      "app_secret": "your app secret",
+      "access_key": "your access key",
+      "access_secret": "your access secret"
+    }
+
+I always share images like Gyazo.
+
+Set dropbox id and directory if you share.
+
+
+    dropbox = '~/Dropbox'
+    dest_dir_name = 'GyazoD/'
+    dest = "/Public/#{dest_dir_name}"
+    your_id = 'your dropbox id is here'
+    public_url = "https://dl.dropbox.com/u/#{your_id}/#{dest_dir_name}"
+    using_sdk = true # false unless you use dropbox_sdk'
+
+
+last one, Need Gemfiles
+
+- gemfile
+- dropbox-sdk
+- open-url
+
+
+If you won't use dropbox sdk, I prepare 'mv' command to move screenshoot image.
+
+
+    using_sdk = false # false unless you use dropbox_sdk'
+
+That's it.
+
+
+
+Modifier
+--------
+
+Shintaro Kaneko <kaneshin.jp@gmail.com>
+

@@ -1,0 +1,84 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'dropbox_sdk'
+require 'open-uri'
+
+# capture png file
+tmp_file_name = Time.new.strftime("%Y%m%d%H%M%S.png")
+tmpfile = "/tmp/#{tmp_file_name}"
+imagefile = ARGV[1]
+
+if imagefile && File.exist?(imagefile) then
+  system "sips -s format png \"#{imagefile}\" --out \"#{tmpfile}\""
+else
+  system "screencapture -i \"#{tmpfile}\""
+  if File.exist?(tmpfile) then
+    system "sips -d profile --deleteColorManagementProperties \"#{tmpfile}\""
+  end
+end
+
+if !File.exist?(tmpfile) then
+  exit
+end
+
+# put in dropbox
+dropbox = '~/Dropbox'
+dest_dir_name = 'GyazoD/'
+dest = "/Public/#{dest_dir_name}"
+your_id = 'your-dropbox-id'
+public_url = "https://dl.dropbox.com/u/#{your_id}/#{dest_dir_name}"
+using_sdk = true
+
+unless using_sdk then
+  # move image in local dropbox directory
+  system "mv #{tmpfile} #{dropbox}#{dest}"
+  # sleep during uploading image
+  sleep(3)
+else
+  # put image in dropbox directly
+  # get droppbox keys
+  user = IO.popen("whoami", "r+").gets.chomp
+  keys_file_name = "keys.json"
+  keysfile = "/Users/#{user}/Library/GyazoD/#{keys_file_name}"
+
+  # post captured png file into dropbox
+  unless File.exist?(keysfile)
+    raise "Create a #{keysfile} file with your Dropbox API credentials. See keys.json.example to get started."
+    File.delete(tmpfile)
+  end
+
+  settings = JSON.parse(File.read(keysfile))
+
+  # Get your app key and secret from the Dropbox developer website
+  APP_KEY = settings['app_key']
+  APP_SECRET = settings['app_secret']
+  ACCESS_KEY = settings['access_key']
+  ACCESS_SECRET = settings['access_secret']
+  ACCESS_TYPE = :dropbox  #The two valid values here are :app_folder and :dropbox
+
+  session = DropboxSession.new(APP_KEY, APP_SECRET)
+  session.set_access_token(ACCESS_KEY, ACCESS_SECRET)
+
+  # This will fail if the user didn't visit the above URL and hit 'Allow'
+  session.get_access_token
+  client = DropboxClient.new(session, ACCESS_TYPE)
+
+  imagedata = File.read(tmpfile)
+  File.delete(tmpfile)
+
+  # your screenshot image will be in Dropbox
+  client.put_file("#{dest}#{tmp_file_name}", imagedata)
+end
+
+system "echo -n #{public_url}#{tmp_file_name} | pbcopy"
+
+begin
+  open("#{public_url}#{tmp_file_name}"){|f|
+    system "open #{public_url}#{tmp_file_name}"
+  }
+rescue
+  # when timeout
+  system "open #{public_url}#{tmp_file_name}"
+end
+
